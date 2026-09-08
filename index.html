@@ -73,21 +73,50 @@
   .big.go:active{box-shadow:0 2px 0 #00539a}
   .big.ghost{background:#fff; box-shadow:0 5px 0 #c3d4e0; font-size:1.02rem; padding:11px}
 
-  /* ---------- cards ---------- */
+  /* ---------- cards ----------
+     Proportions are ISO/IEC 7810 ID-1, the real bank card shape:
+     85.6 x 54 mm, so 1.586:1. Everything else scales off the width. */
   .card{
-    border-radius:16px; color:#fff; padding:12px 14px; box-shadow:0 8px 18px rgba(6,43,78,.22);
-    background:linear-gradient(135deg,var(--blue) 0%, var(--navy) 80%);
-    display:flex; flex-direction:column; gap:8px;
+    position:relative; width:min(100%,320px); aspect-ratio:1.586; margin:0 auto;
+    border-radius:14px; color:#fff; padding:11px 13px; overflow:hidden;
+    background:linear-gradient(140deg,#2497ea 0%, #0a6ec4 34%, #063a66 100%);
+    box-shadow:0 10px 22px rgba(6,43,78,.3), inset 0 1px 0 #ffffff30;
+    display:flex; flex-direction:column; justify-content:space-between;
   }
-  .card.fam{background:linear-gradient(135deg,var(--aqua) 0%, #04697a 80%)}
-  .card .r1{display:flex; align-items:center; justify-content:space-between; font-size:.88rem}
-  .card .wm{font-weight:bold}
-  .card .kind{font-size:.56rem; letter-spacing:.13em; text-transform:uppercase; opacity:.85}
-  .card .chip{width:29px; height:22px; border-radius:5px; background:linear-gradient(160deg,#f6d98a,#c9a13c); border:1px solid #b78f2e}
-  .card .num{font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:.09em; font-size:.9rem}
-  .card .who2{font-size:.66rem; letter-spacing:.09em; text-transform:uppercase; opacity:.9}
-  .card .amt{font-size:1.45rem; font-weight:bold}
-  .card .foot{display:flex; justify-content:space-between; align-items:flex-end}
+  .card.fam{background:linear-gradient(140deg,#2fd6e0 0%, #06a3b0 34%, #03505d 100%)}
+  .card::after{            /* the sheen a printed card catches under lights */
+    content:""; position:absolute; inset:0; pointer-events:none;
+    background:linear-gradient(118deg, transparent 40%, #ffffff17 47%, transparent 55%);
+  }
+  .card > *{position:relative; z-index:1}
+
+  .cardtop{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .card .wm{font-weight:bold; font-size:.95rem; letter-spacing:.01em}
+  .card .kind{font-size:.54rem; letter-spacing:.14em; text-transform:uppercase; opacity:.85; text-align:right}
+
+  .cardmid{display:flex; align-items:center; gap:9px}
+  .card .chip{
+    width:36px; height:27px; border-radius:5px; flex:none; position:relative;
+    background:linear-gradient(160deg,#f8e2a0 0%, #dcb45c 48%, #b98f30 100%);
+    box-shadow:inset 0 0 0 1px #00000026;
+  }
+  .card .chip::before, .card .chip::after{content:""; position:absolute; background:#0000003a}
+  .card .chip::before{left:0; right:0; top:33%; height:1px; box-shadow:0 9px 0 #0000003a}
+  .card .chip::after{top:0; bottom:0; left:34%; width:1px}
+  .card .wave{width:21px; height:21px; opacity:.92; flex:none}
+  .card .wave path{fill:none; stroke:#fff; stroke-width:1.7; stroke-linecap:round}
+
+  .card .num{font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:.02em; font-size:1.02rem}
+  .card .idnum{
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:1.5rem; letter-spacing:.17em;
+    display:block; line-height:1.1;
+  }
+  .card .idnum em{background:var(--gold); color:var(--navy); border-radius:5px; padding:0 3px; font-style:normal}
+  .card .lbl{display:block; font-size:.5rem; letter-spacing:.15em; text-transform:uppercase; opacity:.7}
+  .cardfoot{display:flex; justify-content:space-between; align-items:flex-end; gap:8px}
+  .cardfoot b{font-size:.76rem; letter-spacing:.07em; text-transform:uppercase; font-weight:bold}
+  .cardfoot .right{text-align:right}
+  .cardfoot b.amt{font-size:1.25rem; letter-spacing:0; text-transform:none}
 
   /* ---------- number display ---------- */
   .display{
@@ -108,10 +137,6 @@
   .boxes i.filled{border-color:var(--good); background:#eefbf4}
   .boxes i.next{border-color:var(--gold); animation:pulse 1s infinite}
   @keyframes pulse{50%{background:#fff8e8}}
-  .target{text-align:center; background:#fff; border:3px dashed var(--aqua); border-radius:14px; padding:6px 10px; margin:4px 0}
-  .target b{display:block; font-size:clamp(1.4rem,7.5vw,1.9rem); letter-spacing:.16em; font-family:ui-monospace,Menlo,Consolas,monospace}
-  .target span{font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
-  .target em{background:var(--gold); border-radius:6px; padding:0 3px; font-style:normal}
 
   /* ---------- keypad ---------- */
   .pad{flex:none; display:grid; grid-template-columns:repeat(3,1fr); gap:7px; margin-top:auto}
@@ -140,9 +165,12 @@
 
   /* ---------- transfer animation ---------- */
   .flight{position:relative; display:flex; align-items:center; gap:8px; margin:14px 0}
-  .flight .mini{flex:1; height:74px; border-radius:14px; display:grid; place-items:center; color:#fff; font-size:.76rem;
-                text-align:center; padding:6px; background:linear-gradient(135deg,var(--blue),var(--navy))}
-  .flight .mini.fam{background:linear-gradient(135deg,var(--aqua),#04697a)}
+  .flight .mini{
+    flex:1 1 0; max-width:134px; aspect-ratio:1.586; border-radius:10px; display:grid; place-items:center;
+    color:#fff; font-size:.74rem; text-align:center; padding:6px; line-height:1.25;
+    background:linear-gradient(135deg,#1a8ae0,var(--navy)); box-shadow:0 6px 14px rgba(6,43,78,.28);
+  }
+  .flight .mini.fam{background:linear-gradient(135deg,#22cdd8,#04697a)}
   .flyer{position:absolute; left:22%; top:50%; font-size:2rem; transform:translate(-50%,-50%); animation:fly 1.6s ease-in-out forwards}
   @keyframes fly{
     0%{left:22%; opacity:0; transform:translate(-50%,-50%) scale(.6)}
@@ -168,8 +196,12 @@
   @media (max-height:700px){
     h2{margin:4px 0 1px}
     p.sub{margin:1px 0 4px}
-    .card{padding:10px 12px; gap:6px}
-    .card .amt{font-size:1.3rem}
+    .card{width:min(100%,278px); padding:9px 11px; border-radius:12px}
+    .card .chip{width:31px; height:23px}
+    .card .num{font-size:.9rem}
+    .card .idnum{font-size:1.3rem}
+    .cardfoot b.amt{font-size:1.1rem}
+    .flight .mini{max-width:118px}
     .tip{padding:7px 10px; margin:5px 0}
     .chips{margin:3px 0 0}
     .chip-btn{padding:7px 13px}
@@ -200,12 +232,12 @@
       <h2>Send it home 🚢</h2>
       <p class="sub">Ana cooks on a ship, far out at sea.</p>
       <div class="card">
-        <div class="r1"><span class="wm">ShipMoney</span><span class="kind">Crew Card</span></div>
-        <div class="chip"></div>
+        <div class="cardtop"><span class="wm">ShipMoney</span><span class="kind">Crew Card</span></div>
+        <div class="cardmid"><span class="chip" aria-hidden="true"></span><svg class="wave" viewBox="0 0 22 22" aria-hidden="true"><path d="M7 4.6a10 10 0 0 1 0 12.8"/><path d="M11.6 6.8a6 6 0 0 1 0 8.4"/><path d="M15.9 8.9a2.9 2.9 0 0 1 0 4.2"/></svg></div>
         <div class="num">•••• •••• •••• 4021</div>
-        <div class="foot">
-          <span class="who2">ANA REYES · SHIP'S COOK</span>
-          <span class="amt">$900</span>
+        <div class="cardfoot">
+          <div><span class="lbl">Card holder</span><b>ANA REYES</b></div>
+          <div class="right"><span class="lbl">Balance</span><b class="amt">$900</b></div>
         </div>
       </div>
       <div class="tip"><span>🏢</span><span><b>Her wages are already on the card.</b>
@@ -235,12 +267,16 @@
   <!-- 2. CUSTOMER ID -->
   <section class="scr" id="s-id">
     <h2>Who gets it?</h2>
-    <p class="sub">Type her family's Customer ID.</p>
+    <p class="sub">Copy the Customer ID from her card.</p>
     <div class="card fam">
-      <div class="r1"><span class="wm">ShipMoney</span><span class="kind">Family Card</span></div>
-      <div class="foot"><span class="who2">MARIA REYES · AT HOME</span><span>👩‍👧</span></div>
+      <div class="cardtop"><span class="wm">ShipMoney</span><span class="kind">Family Card</span></div>
+      <div class="cardmid"><span class="chip" aria-hidden="true"></span><svg class="wave" viewBox="0 0 22 22" aria-hidden="true"><path d="M7 4.6a10 10 0 0 1 0 12.8"/><path d="M11.6 6.8a6 6 0 0 1 0 8.4"/><path d="M15.9 8.9a2.9 2.9 0 0 1 0 4.2"/></svg></div>
+      <div><span class="lbl">Customer ID</span><b class="idnum" id="targetId">730419</b></div>
+      <div class="cardfoot">
+        <div><span class="lbl">Card holder</span><b>MARIA REYES</b></div>
+        <div class="right" aria-hidden="true">👩‍👧</div>
+      </div>
     </div>
-    <div class="target"><span>Customer ID</span><b id="targetId">730419</b></div>
     <div class="boxes" id="boxes"></div>
     <div class="grow"></div>
     <div class="pad" id="padB"></div>
