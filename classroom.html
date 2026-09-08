@@ -7,20 +7,18 @@
 <meta name="description" content="A ShipMoney-inspired game for kids about how seafarers are paid at sea and send their earnings home to their families.">
 <style>
   /* ============================================================
-     BRAND TOKENS — placeholder values, not official brand assets.
-     Swap these five hex codes for the official ShipMoney palette
-     and the whole game re-skins. Nothing else needs editing.
+     OFFICIAL SHIPMONEY PALETTE
      ============================================================ */
   :root{
-    --brand-navy:#062b4e;   /* deep hull navy — headings, borders   */
-    --brand-blue:#0072ce;   /* primary blue — buttons, card face    */
-    --brand-aqua:#00b7c3;   /* aqua accent — progress, highlights   */
-    --brand-gold:#ffb81c;   /* warm accent — stars, rewards         */
-    --brand-sand:#f4f7fa;   /* light ground — panels                */
+    --brand-navy:#002F71;   /* deep navy — headings, borders        */
+    --brand-blue:#00389F;   /* primary blue — buttons, card face    */
+    --brand-aqua:#00B5E8;   /* bright cyan — progress, highlights   */
+    --brand-gold:#79DFFF;   /* light cyan — stars, rewards          */
+    --brand-sand:#EFF6FC;   /* light ground — panels                */
 
-    --ink:#0d2438; --muted:#516d84; --card:#fff; --line:#d8e5ee;
+    --ink:#002F71; --muted:#4E6E93; --card:#fff; --line:#D3E4F2;
     --good:#12855a; --bad:#c8384c;
-    --gold-dark:#c98c0b; --blue-dark:#00539a;
+    --gold-dark:#2FA4D6; --blue-dark:#002F71;
     --shadow:0 6px 0 rgba(6,43,78,.16), 0 14px 28px rgba(6,43,78,.14);
     color-scheme: light;
   }
@@ -29,7 +27,7 @@
     margin:0; min-height:100vh; color:var(--ink);
     font-family:"Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
     font-size:17px; line-height:1.5;
-    background:linear-gradient(180deg,#d8ecf8 0%, #86c4e6 42%, var(--brand-blue) 100%) fixed;
+    background:linear-gradient(180deg,#E4F3FD 0%, #79C2EC 42%, var(--brand-blue) 100%) fixed;
   }
   .wrap{max-width:960px; margin:0 auto; padding:14px 16px 44px}
 
@@ -48,7 +46,7 @@
   .lockup h1{font-size:1.05rem; margin:0; line-height:1.2}
   .lockup h1 b{color:var(--brand-blue)}
   .lockup h1 span{display:block; font-size:.72rem; font-weight:400; color:var(--muted)}
-  .score{font-weight:bold; background:#fff6e2; border:2px solid var(--brand-gold); border-radius:999px; padding:4px 12px; white-space:nowrap}
+  .score{font-weight:bold; background:#E8F6FE; border:2px solid var(--brand-gold); border-radius:999px; padding:4px 12px; white-space:nowrap}
   .iconbtn{font-size:1.05rem; background:var(--brand-sand); border:2px solid var(--line); border-radius:12px; padding:5px 10px; cursor:pointer}
   .iconbtn:hover{background:#e3eefa}
 
