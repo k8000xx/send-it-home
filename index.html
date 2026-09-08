@@ -127,9 +127,10 @@
 
   .card .num{font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:.02em; font-size:1.02rem}
   .card .idnum{
-    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:1.5rem; letter-spacing:.17em;
-    display:block; line-height:1.1;
+    font-family:ui-monospace,Menlo,Consolas,monospace; font-size:1.24rem; letter-spacing:.06em;
+    display:block; line-height:1.1; white-space:nowrap;
   }
+  .card .idnum .gap{display:inline-block; width:.45em}
   .card .idnum em{background:var(--glow); color:var(--navy); border-radius:5px; padding:0 3px; font-style:normal}
   .card .lbl{display:block; font-size:.52rem; letter-spacing:.15em; text-transform:uppercase; opacity:.88}
   .cardfoot{display:flex; justify-content:space-between; align-items:flex-end; gap:8px}
@@ -147,12 +148,13 @@
   .chip-btn{background:#fff; border:2px solid var(--line); border-radius:999px; padding:8px 15px; font-weight:bold; cursor:pointer}
   .chip-btn:active{background:var(--sand)}
 
-  .boxes{display:flex; gap:6px; justify-content:center; margin:6px 0 2px}
+  .boxes{display:flex; gap:3px; justify-content:center; margin:6px 0 2px}
   .boxes i{
-    width:clamp(32px,10vw,44px); height:clamp(42px,12vw,54px); border-radius:12px; background:#fff;
-    border:3px solid var(--line); display:grid; place-items:center;
-    font-size:clamp(1.2rem,5.6vw,1.6rem); font-weight:bold; font-style:normal; color:var(--navy);
+    flex:1 1 0; min-width:0; max-width:34px; height:clamp(40px,11vw,50px);
+    border-radius:9px; background:#fff; border:2.5px solid var(--line); display:grid; place-items:center;
+    font-size:clamp(.85rem,4vw,1.3rem); font-weight:bold; font-style:normal; color:var(--navy);
   }
+  .boxes i.grouped{margin-left:7px}      /* 00 · 7304 · 1982 */
   .boxes i.filled{border-color:var(--good); background:#eefbf4}
   .boxes i.next{border-color:var(--cyan); animation:pulse 1s infinite}
   @keyframes pulse{50%{background:#E6F8FF}}
@@ -255,7 +257,7 @@
     .card{width:min(100%,278px); padding:9px 11px; border-radius:12px}
     .card .chip{width:31px; height:23px}
     .card .num{font-size:.9rem}
-    .card .idnum{font-size:1.3rem}
+    .card .idnum{font-size:1.1rem}
     .cardfoot b.amt{font-size:1.1rem}
     .flight .mini{max-width:118px}
     .tip{padding:7px 10px; margin:5px 0}
@@ -364,7 +366,7 @@
       <div class="watermark" aria-hidden="true"></div>
         <div class="cardtop"><span class="wm cardlogo" role="img" aria-label="ShipMoney"></span><span class="kind">Family Card</span></div>
       <div class="cardmid"><span class="chip" aria-hidden="true"></span><svg class="wave" viewBox="0 0 22 22" aria-hidden="true"><path d="M7 4.6a10 10 0 0 1 0 12.8"/><path d="M11.6 6.8a6 6 0 0 1 0 8.4"/><path d="M15.9 8.9a2.9 2.9 0 0 1 0 4.2"/></svg></div>
-      <div><span class="lbl">Customer ID</span><b class="idnum" id="targetId">730419</b></div>
+      <div><span class="lbl">Customer ID</span><b class="idnum" id="targetId">0073041982</b></div>
       <div class="cardfoot">
         <div><span class="lbl">Card holder</span><b>MARIA REYES</b></div>
         <div class="right" aria-hidden="true">👩‍👧</div>
@@ -382,7 +384,7 @@
     <div class="grow scroller">
       <div class="rows">
         <div><dt>From</dt><dd>Ana's card •••• 4021</dd></div>
-        <div><dt>To</dt><dd>Maria · ID <span id="cfId">730419</span></dd></div>
+        <div><dt>To</dt><dd>Maria · ID <span id="cfId">00 7304 1982</span></dd></div>
         <div><dt>Amount</dt><dd id="cfAmt">$0</dd></div>
         <div><dt>Fee</dt><dd class="free">$0 · free</dd></div>
         <div><dt>Arrives</dt><dd class="free">Right away</dd></div>
@@ -451,8 +453,8 @@
   /* ---- booth settings, set in the QR link: ?id=730419&day=DOLPHIN ---- */
   var Q = new URLSearchParams(location.search);
   var clean = function(v, re, max){ return (v || "").toUpperCase().replace(re, "").slice(0, max); };
-  var TARGET = clean(Q.get("id"), /[^0-9]/g, 6);
-  if(TARGET.length !== 6) TARGET = "730419";
+  var TARGET = clean(Q.get("id"), /[^0-9]/g, 10);
+  if(!/^00\d{8}$/.test(TARGET)) TARGET = "0073041982";   // 10 digits, always opening 00
   var DAYWORD = clean(Q.get("day"), /[^A-Z0-9]/g, 10);
   var WAGE = 900;
 
@@ -592,26 +594,36 @@
   }
 
   /* ---- 2. customer ID ---- */
-  $("#targetId").textContent = TARGET;
+  // 00 7304 1982 — grouped so ten digits can be read and copied a chunk at a time
+  var GROUPS = [2, 6];
+  function idMarkup(raw, hi){
+    var out = "";
+    for(var i = 0; i < raw.length; i++){
+      if(GROUPS.indexOf(i) > -1) out += '<span class="gap"></span>';
+      out += (i === hi) ? "<em>" + raw[i] + "</em>" : raw[i];
+    }
+    return out;
+  }
+  function idPlain(raw){
+    return raw.slice(0, 2) + " " + raw.slice(2, 6) + " " + raw.slice(6);
+  }
+  $("#targetId").innerHTML = idMarkup(TARGET, -1);
   function drawBoxes(){
     var box = $("#boxes"); box.innerHTML = "";
-    for(var i = 0; i < 6; i++){
+    for(var i = 0; i < TARGET.length; i++){
       var b = document.createElement("i");
       b.textContent = S.buf[i] || "";
-      b.className = S.buf[i] ? "filled" : (i === S.buf.length ? "next" : "");
+      b.className = (S.buf[i] ? "filled" : (i === S.buf.length ? "next" : "")) +
+                    (GROUPS.indexOf(i) > -1 ? " grouped" : "");
       box.appendChild(b);
     }
-    var t = $("#targetId");
-    if(S.wrong >= 2 && S.buf.length < 6){   // after a couple of misses, point at the next digit
-      t.innerHTML = TARGET.slice(0, S.buf.length) + "<em>" + TARGET[S.buf.length] + "</em>" +
-                    TARGET.slice(S.buf.length + 1);
-    } else {
-      t.textContent = TARGET;
-    }
+    // after a couple of misses, point at the next digit to copy
+    var hi = (S.wrong >= 2 && S.buf.length < TARGET.length) ? S.buf.length : -1;
+    $("#targetId").innerHTML = idMarkup(TARGET, hi);
   }
   makeKeypad($("#padB"), function(n){
     if(n === "del"){ S.buf = S.buf.slice(0, -1); drawBoxes(); return; }
-    if(S.buf.length >= 6) return;
+    if(S.buf.length >= TARGET.length) return;
     if(n !== TARGET[S.buf.length]){
       S.wrong++; no(); buzz([12,60,12]);
       $("#boxes").classList.add("shake");
@@ -620,10 +632,10 @@
       return;
     }
     S.buf += n; S.wrong = 0; ok(); drawBoxes();
-    if(S.buf.length === 6){
+    if(S.buf.length === TARGET.length){
       yay();
       setTimeout(function(){
-        $("#cfId").textContent = TARGET;
+        $("#cfId").textContent = idPlain(TARGET);
         $("#cfAmt").textContent = money(S.amount);
         go("confirm");
       }, 550);
@@ -670,7 +682,7 @@
          ["Maria receives", peso(arrives()), "free"],
          ["Left on Ana's card", money(S.left), ""]]
       : [["Sent", money(S.amount), ""],
-         ["To Customer ID", TARGET, ""],
+         ["To Customer ID", idPlain(TARGET), ""],
          ["Fee", money(0), "free"],
          ["Left on Ana's card", money(S.left), ""]];
     $("#rcRows").innerHTML = rows.map(function(r){
