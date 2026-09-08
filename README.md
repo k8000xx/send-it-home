@@ -22,7 +22,7 @@ the other one.
 | | Screen | Action |
 | --- | --- | --- |
 | 1 | How much? | Taps an amount on a big keypad, or picks $100 / $300 / $600 |
-| 2 | Who gets it? | Types the family's six-digit Customer ID, copying it from the card on screen |
+| 2 | Who gets it? | Types the family's ten-digit Customer ID, copying it from the card on screen |
 | 3 | Ready to send? | Checks from / to / amount / fee, presses **Send** |
 
 **Wire to a bank** — a small fee, one to two days:
@@ -44,8 +44,10 @@ card**, so there is no cash to carry and no bank to visit.
 
 Deliberately forgiving, because the players are small and the queue is long:
 
-- A wrong digit in the Customer ID is simply not accepted — a shake and a buzz,
-  nothing lost. After two misses the game highlights the next digit to copy.
+- The Customer ID is shown and typed in groups — `00 7304 1982` — so ten digits
+  are read a chunk at a time rather than as one long run.
+- A wrong digit is simply not accepted — a shake and a buzz, nothing lost. After
+  two misses the game highlights the next digit to copy.
 - Sending more than is on the card turns the amount red and disables **Next**.
 - A back arrow on every step, and **Play again** at the end.
 - No typing on the phone keyboard anywhere: big on-screen keys only.
@@ -56,9 +58,9 @@ Deliberately forgiving, because the players are small and the queue is long:
 ### Booth knobs live in the URL
 
 - `?day=DOLPHIN` — today's word, shown on the finish screen
-- `?id=482013` — a different six-digit Customer ID (anything invalid falls back
-  to `730419`)
-- combined: `?day=DOLPHIN&id=482013`
+- `?id=0048201374` — a different Customer ID. Ten digits opening with `00`;
+  anything else falls back to `0073041982`
+- combined: `?day=DOLPHIN&id=0048201374`
 
 ### Print the poster
 
@@ -107,4 +109,6 @@ Replace those hex codes and the whole game re-skins. The wordmark is plain text,
 not a logo.
 
 Every figure is invented for the game — the $900 wage, the $0 card-to-card fee,
-the names, the Customer ID. They are illustrative, not anyone's real rates.
+the $8 wire fee, the ₱58.20 exchange rate, the names, the Customer ID, and the
+bank and its SWIFT code (Ocean Bank / OCBKPHMM is not a real bank). They are
+illustrative, not anyone's real rates.
