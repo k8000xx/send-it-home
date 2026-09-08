@@ -85,7 +85,7 @@
   .big[disabled]{background:#dbe7f0; color:#8ba4b6; box-shadow:0 5px 0 #c3d4e0; cursor:not-allowed}
   .big.go{background:var(--blue); color:#fff; box-shadow:0 5px 0 #00539a}
   .big.go:active{box-shadow:0 2px 0 #00539a}
-  .big.ghost{background:#fff; box-shadow:0 5px 0 #c3d4e0; font-size:1.02rem; padding:11px}
+  .big.ghost{background:#fff; color:var(--navy); box-shadow:0 5px 0 #c3d4e0; font-size:1.02rem; padding:11px}
 
   /* ---------- cards ----------
      Proportions are ISO/IEC 7810 ID-1, the real bank card shape:
@@ -182,23 +182,36 @@
   }
   .tip.flat{background:#fff; border-color:var(--line); color:var(--muted)}
 
-  /* ---------- transfer animation ---------- */
-  .flight{position:relative; display:flex; align-items:center; gap:8px; margin:14px 0}
-  .flight .mini{
-    flex:1 1 0; max-width:134px; aspect-ratio:1.586; border-radius:10px; display:grid; place-items:center;
-    color:#fff; font-size:.74rem; text-align:center; padding:6px; line-height:1.25;
-    background:linear-gradient(135deg,var(--mid),var(--navy)); box-shadow:0 6px 14px rgba(0,47,113,.3);
+  /* ---------- transfer animation ----------
+     The money travels along the track BETWEEN the cards, never over
+     them, so it cannot cover either label while it flies. */
+  .lane{display:grid; grid-template-columns:1fr 1.15fr 1fr; align-items:center; gap:6px}
+  .lane .mini{
+    aspect-ratio:1.586; border-radius:10px; position:relative; overflow:hidden;
+    background:linear-gradient(140deg,var(--mid),var(--navy)); box-shadow:0 6px 14px rgba(0,47,113,.3);
+    display:grid; place-items:center;
   }
-  .flight .mini.fam{background:linear-gradient(135deg,var(--cyan),#014A73)}
-  .flyer{position:absolute; left:22%; top:50%; font-size:2rem; transform:translate(-50%,-50%); animation:fly 1.6s ease-in-out forwards}
+  .lane .mini.fam{background:linear-gradient(140deg,var(--cyan) 0%, #0071B4 45%, var(--navy) 100%)}
+  .lane .minilogo{width:62%; height:26%; opacity:.95}
+  .track{position:relative; height:40px}
+  .track::before{
+    content:""; position:absolute; left:2%; right:2%; top:50%; transform:translateY(-50%);
+    border-top:3px dotted #8FBEE4;
+  }
+  .flyer{
+    position:absolute; top:50%; left:0; font-size:1.7rem; transform:translate(-50%,-50%);
+    animation:fly 1.7s ease-in-out forwards;
+  }
   @keyframes fly{
-    0%{left:22%; opacity:0; transform:translate(-50%,-50%) scale(.6)}
-    18%{opacity:1; transform:translate(-50%,-50%) scale(1)}
-    82%{opacity:1}
-    100%{left:78%; opacity:0; transform:translate(-50%,-50%) scale(.6)}
+    0%{left:0; opacity:0} 14%{opacity:1} 86%{opacity:1} 100%{left:100%; opacity:0}
   }
-  .spin{text-align:center; font-size:2.6rem; animation:spin 1.2s linear infinite}
-  @keyframes spin{to{transform:rotate(360deg)}}
+  .lanecaps{
+    display:grid; grid-template-columns:1fr 1.15fr 1fr; gap:6px; margin-top:7px;
+    text-align:center; font-size:.8rem; color:var(--muted); line-height:1.25;
+  }
+  .progress{height:9px; border-radius:999px; background:#D6E8F7; overflow:hidden; margin:18px 4px 0}
+  .progress i{display:block; height:100%; width:0; background:var(--cyan); animation:fill 1.9s linear forwards}
+  @keyframes fill{to{width:100%}}
 
   /* ---------- reward ---------- */
   .reward{background:linear-gradient(160deg,#fff,#DFF5FF); border:4px solid var(--cyan); border-radius:20px;
@@ -326,13 +339,16 @@
   <!-- 4. SENDING -->
   <section class="scr" id="s-sending">
     <div class="grow" style="display:flex; flex-direction:column; justify-content:center">
-      <h2>Sending…</h2>
-      <div class="flight" id="flight">
-        <div class="mini">Ana's card<br>at sea 🚢</div>
-        <div style="font-size:1.4rem">➜</div>
-        <div class="mini fam">Family card<br>at home 🏠</div>
+      <h2>Sending <span id="sendAmt">$0</span>…</h2>
+      <div class="lane">
+        <div class="mini"><span class="minilogo cardlogo" aria-hidden="true"></span></div>
+        <div class="track" id="track"></div>
+        <div class="mini fam"><span class="minilogo cardlogo" aria-hidden="true"></span></div>
       </div>
-      <div class="spin">⏳</div>
+      <div class="lanecaps">
+        <span>Ana's card<br>at sea 🚢</span><span></span><span>Family card<br>at home 🏠</span>
+      </div>
+      <div class="progress"><i></i></div>
     </div>
   </section>
 
@@ -513,10 +529,14 @@
 
   /* ---- 3/4. send ---- */
   $("#sendBtn").addEventListener("click", function(){
-    ok(); go("sending");
+    ok();
+    $("#sendAmt").textContent = money(S.amount);
+    go("sending");
+    var bar = document.querySelector(".progress i");   // restart the fill on replays
+    bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = "";
     var f = document.createElement("div");
     f.className = "flyer"; f.textContent = "💸";
-    $("#flight").appendChild(f);
+    $("#track").appendChild(f);
     setTimeout(function(){
       f.remove();
       S.left = S.left - S.amount;
