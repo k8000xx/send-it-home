@@ -155,6 +155,7 @@
     font-size:clamp(.85rem,4vw,1.3rem); font-weight:bold; font-style:normal; color:var(--navy);
   }
   .boxes i.grouped{margin-left:7px}      /* 00 · 7304 · 1982 */
+  .boxes i.pre{background:#E9F2FA; border-color:#C2DAEE; color:var(--muted)}  /* filled in for them */
   .boxes i.filled{border-color:var(--good); background:#eefbf4}
   .boxes i.next{border-color:var(--cyan); animation:pulse 1s infinite}
   @keyframes pulse{50%{background:#E6F8FF}}
@@ -361,7 +362,7 @@
   <!-- 2. CUSTOMER ID -->
   <section class="scr" id="s-id">
     <h2>Who gets it?</h2>
-    <p class="sub">Copy the Customer ID from her card.</p>
+    <p class="sub">The <b>00</b> is done — copy the rest.</p>
     <div class="card fam">
       <div class="watermark" aria-hidden="true"></div>
         <div class="cardtop"><span class="wm cardlogo" role="img" aria-label="ShipMoney"></span><span class="kind">Family Card</span></div>
@@ -510,10 +511,10 @@
       el.className = (d === undefined) ? "" : (i < d ? "done" : (i === d ? "on" : ""));
     });
     $("#dots").style.visibility = (d === undefined) ? "hidden" : "visible";
+    if(id === "id") resetId();
   }
   $("#back").addEventListener("click", function(){
     var t = BACKTO[S.mode][at]; if(!t) return;
-    if(t === "amount"){ S.buf = ""; S.wrong = 0; drawBoxes(); }
     go(t);
   });
 
@@ -596,6 +597,8 @@
   /* ---- 2. customer ID ---- */
   // 00 7304 1982 — grouped so ten digits can be read and copied a chunk at a time
   var GROUPS = [2, 6];
+  var PREFILL = 2;                       // the leading 00 is filled in for them
+  function resetId(){ S.buf = TARGET.slice(0, PREFILL); S.wrong = 0; drawBoxes(); }
   function idMarkup(raw, hi){
     var out = "";
     for(var i = 0; i < raw.length; i++){
@@ -613,7 +616,7 @@
     for(var i = 0; i < TARGET.length; i++){
       var b = document.createElement("i");
       b.textContent = S.buf[i] || "";
-      b.className = (S.buf[i] ? "filled" : (i === S.buf.length ? "next" : "")) +
+      b.className = (i < PREFILL ? "pre" : (S.buf[i] ? "filled" : (i === S.buf.length ? "next" : ""))) +
                     (GROUPS.indexOf(i) > -1 ? " grouped" : "");
       box.appendChild(b);
     }
@@ -622,7 +625,10 @@
     $("#targetId").innerHTML = idMarkup(TARGET, hi);
   }
   makeKeypad($("#padB"), function(n){
-    if(n === "del"){ S.buf = S.buf.slice(0, -1); drawBoxes(); return; }
+    if(n === "del"){
+      if(S.buf.length > PREFILL) S.buf = S.buf.slice(0, -1);
+      drawBoxes(); return;
+    }
     if(S.buf.length >= TARGET.length) return;
     if(n !== TARGET[S.buf.length]){
       S.wrong++; no(); buzz([12,60,12]);
@@ -708,12 +714,12 @@
   /* ---- play again ---- */
   $("#againBtn").addEventListener("click", function(){
     clearInterval(S.clock);
-    S.mode = "card"; S.amount = 0; S.buf = ""; S.left = WAGE; S.wrong = 0;
-    drawAmt(); drawBoxes(); setBal();
+    S.mode = "card"; S.amount = 0; S.left = WAGE;
+    drawAmt(); resetId(); setBal();
     go("welcome");
   });
 
-  drawAmt(); drawBoxes(); setBal(); go("welcome");
+  drawAmt(); resetId(); setBal(); go("welcome");
 })();
 </script>
 </body>

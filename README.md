@@ -22,7 +22,7 @@ the other one.
 | | Screen | Action |
 | --- | --- | --- |
 | 1 | How much? | Taps an amount on a big keypad, or picks $100 / $300 / $600 |
-| 2 | Who gets it? | Types the family's ten-digit Customer ID, copying it from the card on screen |
+| 2 | Who gets it? | Copies the family's Customer ID from the card — the leading `00` is filled in, so eight digits to type |
 | 3 | Ready to send? | Checks from / to / amount / fee, presses **Send** |
 
 **Wire to a bank** — a small fee, one to two days:
@@ -44,8 +44,9 @@ card**, so there is no cash to carry and no bank to visit.
 
 Deliberately forgiving, because the players are small and the queue is long:
 
-- The Customer ID is shown and typed in groups — `00 7304 1982` — so ten digits
-  are read a chunk at a time rather than as one long run.
+- The Customer ID is ten digits, but the leading `00` arrives already filled in
+  and cannot be deleted, so a child types eight. It is shown and entered in
+  groups — `00 7304 1982` — to be read a chunk at a time rather than as one run.
 - A wrong digit is simply not accepted — a shake and a buzz, nothing lost. After
   two misses the game highlights the next digit to copy.
 - Sending more than is on the card turns the amount red and disables **Next**.
