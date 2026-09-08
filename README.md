@@ -12,18 +12,35 @@ dependencies, no data collected, and nothing stored between plays.
 
 ## What the child does
 
+They meet Ana, a ship's cook, whose crew card is already loaded with $900, then
+pick one of two ways to send money home. Either way is three steps and about a
+minute, and both end at the same reward code — so a child who plays twice gets
+the other one.
+
+**Card to card** — instant, no fee:
+
 | | Screen | Action |
 | --- | --- | --- |
-| | Welcome | Meets Ana, a ship's cook, and her crew card — already loaded with $900 |
 | 1 | How much? | Taps an amount on a big keypad, or picks $100 / $300 / $600 |
 | 2 | Who gets it? | Types the family's six-digit Customer ID, copying it from the card on screen |
 | 3 | Ready to send? | Checks from / to / amount / fee, presses **Send** |
-| | Sent | Money flies card to card, receipt appears, reward code appears |
+
+**Wire to a bank** — a small fee, one to two days:
+
+| | Screen | Action |
+| --- | --- | --- |
+| 1 | Add a recipient | Name, bank, SWIFT/BIC and account are already filled in; the child checks them and saves |
+| 2 | How much? | Same keypad, but the amount has to cover the $8 wire fee |
+| 3 | Your quotation | Sees the fee taken off, the exchange rate applied, and exactly what Maria receives in pesos, then presses **Send funds** |
+
+The two paths are the lesson: the same money, sent two ways, with the cost and
+the waiting laid side by side. The quotation is where that lands — a child can
+read that $150 becomes ₱8,264.40 after an $8 fee, and that it takes a day or two,
+while the card transfer arrives before they put the phone down.
 
 Everything else is flavour, kept to two short lines: **Ana's employer — the
-shipping company she works for — puts her wages straight onto her card**, so
-there is no cash to carry and no bank to visit. The transfer itself is card to
-card: instant, no fee.
+shipping company she works for — puts her wages straight onto her ShipMoney
+card**, so there is no cash to carry and no bank to visit.
 
 Deliberately forgiving, because the players are small and the queue is long:
 
@@ -32,6 +49,7 @@ Deliberately forgiving, because the players are small and the queue is long:
 - Sending more than is on the card turns the amount red and disables **Next**.
 - A back arrow on every step, and **Play again** at the end.
 - No typing on the phone keyboard anywhere: big on-screen keys only.
+- Sounds are short beeps; phones that support it also give a light buzz.
 
 ## Running the booth
 

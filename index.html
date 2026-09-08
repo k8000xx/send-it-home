@@ -169,6 +169,29 @@
   .shake{animation:shake .3s}
   @keyframes shake{25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 
+  /* ---------- pick a way to send ---------- */
+  .opts{display:flex; flex-direction:column; gap:11px; margin-top:4px}
+  .opt{
+    width:100%; text-align:left; cursor:pointer; background:#fff; border:3px solid var(--line);
+    border-radius:18px; padding:13px 14px; display:flex; gap:12px; align-items:center;
+  }
+  .opt:active{border-color:var(--cyan); background:var(--sand)}
+  .opt .ico{font-size:2rem; flex:none}
+  .opt b{display:block; font-size:1.06rem}
+  .opt small{color:var(--muted)}
+  .opt .go{margin-left:auto; color:var(--blue); font-size:1.5rem; font-weight:bold}
+
+  /* ---------- pre-filled recipient form ---------- */
+  .field{
+    background:#fff; border:2px solid var(--line); border-radius:14px;
+    padding:7px 12px; margin-bottom:8px; display:flex; align-items:center; gap:10px;
+  }
+  .field .txt{flex:1; min-width:0}
+  .field .lbl{display:block; font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted)}
+  .field .val{font-weight:bold; font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .field .val.mono{font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:.06em}
+  .field .tick{color:var(--good); font-weight:bold; font-size:1.1rem; flex:none}
+
   /* ---------- rows / tips ---------- */
   .rows{background:#fff; border:2px solid var(--line); border-radius:16px; padding:2px 13px; margin:7px 0}
   .rows div{display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:.95rem}
@@ -192,6 +215,7 @@
     display:grid; place-items:center;
   }
   .lane .mini.fam{background:linear-gradient(140deg,var(--cyan) 0%, #0071B4 45%, var(--navy) 100%)}
+  .lane .mini.bank{background:linear-gradient(140deg,#3E6FA8 0%, var(--navy) 100%); font-size:1.7rem}
   .lane .minilogo{width:62%; height:26%; opacity:.95}
   .track{position:relative; height:40px}
   .track::before{
@@ -284,6 +308,39 @@
     <button class="big go" id="startBtn">▶ &nbsp;Start</button>
   </section>
 
+  <!-- 1a. PICK A WAY TO SEND -->
+  <section class="scr" id="s-mode">
+    <h2>How shall we send it?</h2>
+    <p class="sub">Both reach her family. Pick one.</p>
+    <div class="opts">
+      <button class="opt" id="optCard" type="button">
+        <span class="ico" aria-hidden="true">💳</span>
+        <span class="txt"><b>Card to card</b><small>To the family's ShipMoney card<br>Instant · no fee</small></span>
+        <span class="go" aria-hidden="true">›</span>
+      </button>
+      <button class="opt" id="optWire" type="button">
+        <span class="ico" aria-hidden="true">🏦</span>
+        <span class="txt"><b>Wire to a bank</b><small>To her family's bank account<br>1–2 days · small fee</small></span>
+        <span class="go" aria-hidden="true">›</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 1b. ADD A RECIPIENT (wire) -->
+  <section class="scr" id="s-recipient">
+    <h2>Add a recipient</h2>
+    <p class="sub">Ana saved these details already. Check them.</p>
+    <div class="grow scroller">
+      <div class="field"><span class="txt"><span class="lbl">Name</span><span class="val">Maria Reyes</span></span><span class="tick">✓</span></div>
+      <div class="field"><span class="txt"><span class="lbl">Bank</span><span class="val">Ocean Bank</span></span><span class="tick">✓</span></div>
+      <div class="field"><span class="txt"><span class="lbl">SWIFT / BIC</span><span class="val mono">OCBKPHMM</span></span><span class="tick">✓</span></div>
+      <div class="field"><span class="txt"><span class="lbl">Account</span><span class="val mono">•••• 4471</span></span><span class="tick">✓</span></div>
+      <div class="tip"><span>🏦</span><span>The <b>SWIFT code</b> is the bank's address. Out of every bank in the
+        world, it tells the money exactly which one to go to.</span></div>
+    </div>
+    <button class="big go" id="saveRecip">Save recipient ✓</button>
+  </section>
+
   <!-- 1. AMOUNT -->
   <section class="scr" id="s-amount">
     <h2>How much?</h2>
@@ -336,6 +393,18 @@
     <button class="big go" id="sendBtn">Send 💸</button>
   </section>
 
+  <!-- 3b. QUOTATION (wire) -->
+  <section class="scr" id="s-quote">
+    <h2>Your quotation</h2>
+    <p class="sub">This is what it costs, and what arrives.</p>
+    <div class="grow scroller">
+      <div class="rows" id="quoteRows"></div>
+      <div class="tip"><span>⏳</span><span>A wire goes bank to bank, so it costs a little and takes a day or two.
+        Card to card is instant and free — that is why Ana uses it most months.</span></div>
+    </div>
+    <button class="big go" id="wireSend">Send funds 💸</button>
+  </section>
+
   <!-- 4. SENDING -->
   <section class="scr" id="s-sending">
     <div class="grow" style="display:flex; flex-direction:column; justify-content:center">
@@ -343,10 +412,10 @@
       <div class="lane">
         <div class="mini"><span class="minilogo cardlogo" aria-hidden="true"></span></div>
         <div class="track" id="track"></div>
-        <div class="mini fam"><span class="minilogo cardlogo" aria-hidden="true"></span></div>
+        <div class="mini fam" id="miniTo"><span class="minilogo cardlogo" aria-hidden="true"></span></div>
       </div>
       <div class="lanecaps">
-        <span>Ana's card<br>at sea 🚢</span><span></span><span>Family card<br>at home 🏠</span>
+        <span>Ana's card<br>at sea 🚢</span><span></span><span id="capTo">Family card<br>at home 🏠</span>
       </div>
       <div class="progress"><i></i></div>
     </div>
@@ -356,16 +425,11 @@
   <section class="scr" id="s-done">
     <div class="grow scroller">
       <div class="confetti">🎉✅🎉</div>
-      <h2>It arrived!</h2>
-      <p class="sub">Maria got the money right away.</p>
-      <div class="rows">
-        <div><dt>Sent</dt><dd id="rcAmt">$0</dd></div>
-        <div><dt>To Customer ID</dt><dd id="rcId">730419</dd></div>
-        <div><dt>Fee</dt><dd class="free">$0</dd></div>
-        <div><dt>Left on Ana's card</dt><dd id="rcLeft">$0</dd></div>
-      </div>
-      <div class="tip"><span>🏢</span><span>Her employer put the wages on her card. She sent some home,
-        card to card — instant, and free.</span></div>
+      <h2 id="doneTitle">It arrived!</h2>
+      <p class="sub" id="doneSub">Maria got the money right away.</p>
+      <div class="rows" id="rcRows"></div>
+      <div class="tip"><span>🏢</span><span id="doneTip">Her employer put the wages on her card. She sent some
+        home, card to card — instant, and free.</span></div>
       <div class="reward">
         <div class="say">🎁 Show this at the booth</div>
         <div class="code" id="code">SM-0000</div>
@@ -392,13 +456,29 @@
   var DAYWORD = clean(Q.get("day"), /[^A-Z0-9]/g, 10);
   var WAGE = 900;
 
-  var S = { amount:0, buf:"", left:WAGE, wrong:0, clock:null };
+  /* Wire transfer, illustrative figures only */
+  var WIRE_FEE = 8, RATE = 58.20, BANK = "Ocean Bank", SWIFT = "OCBKPHMM";
+  var peso = function(n){ return "\u20B1" + n.toLocaleString("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}); };
 
-  var STEPS   = ["welcome","amount","id","confirm","sending","done"];
-  var DOTSTEP = { amount:0, id:1, confirm:2, sending:2, done:2 };
-  var BACKTO  = { id:"amount", confirm:"id" };
-  var SUB     = { welcome:"Send it home", amount:"Step 1 of 3 · amount", id:"Step 2 of 3 · customer ID",
-                  confirm:"Step 3 of 3 · check it", sending:"Sending", done:"All done!" };
+  var S = { mode:"card", amount:0, buf:"", left:WAGE, wrong:0, clock:null };
+
+  var STEPS = ["welcome","mode","recipient","amount","id","confirm","quote","sending","done"];
+  // each way of sending has its own three steps, so the dots read the same either way
+  var DOTSTEP = {
+    card: { amount:0, id:1, confirm:2, sending:2, done:2 },
+    wire: { recipient:0, amount:1, quote:2, sending:2, done:2 }
+  };
+  var BACKTO = {
+    card: { amount:"mode", id:"amount", confirm:"id" },
+    wire: { recipient:"mode", amount:"recipient", quote:"amount" }
+  };
+  var SUB = {
+    card: { mode:"How to send", amount:"Step 1 of 3 · amount", id:"Step 2 of 3 · customer ID",
+            confirm:"Step 3 of 3 · check it" },
+    wire: { mode:"How to send", recipient:"Step 1 of 3 · recipient", amount:"Step 2 of 3 · amount",
+            quote:"Step 3 of 3 · quotation" }
+  };
+  var SUB_ANY = { welcome:"Send it home", sending:"Sending", done:"All done!" };
   var at = "welcome";
 
   function buzz(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
@@ -421,16 +501,16 @@
   function go(id){
     at = id;
     STEPS.forEach(function(s){ $("#s-" + s).classList.toggle("on", s === id); });
-    $("#barsub").textContent = SUB[id] || "";
-    $("#back").classList.toggle("on", !!BACKTO[id]);
-    var d = DOTSTEP[id];
+    $("#barsub").textContent = SUB_ANY[id] || SUB[S.mode][id] || "";
+    $("#back").classList.toggle("on", !!BACKTO[S.mode][id]);
+    var d = DOTSTEP[S.mode][id];
     Array.prototype.forEach.call($("#dots").children, function(el, i){
       el.className = (d === undefined) ? "" : (i < d ? "done" : (i === d ? "on" : ""));
     });
     $("#dots").style.visibility = (d === undefined) ? "hidden" : "visible";
   }
   $("#back").addEventListener("click", function(){
-    var t = BACKTO[at]; if(!t) return;
+    var t = BACKTO[S.mode][at]; if(!t) return;
     if(t === "amount"){ S.buf = ""; S.wrong = 0; drawBoxes(); }
     go(t);
   });
@@ -459,13 +539,17 @@
   }
 
   /* ---- 0. welcome ---- */
-  $("#startBtn").addEventListener("click", function(){ ok(); go("amount"); });
+  $("#startBtn").addEventListener("click", function(){ ok(); go("mode"); });
+  $("#optCard").addEventListener("click", function(){ S.mode = "card"; ok(); buzz(8); go("amount"); });
+  $("#optWire").addEventListener("click", function(){ S.mode = "wire"; ok(); buzz(8); go("recipient"); });
+  $("#saveRecip").addEventListener("click", function(){ ok(); go("amount"); });
 
   /* ---- 1. amount ---- */
   function drawAmt(){
     $("#amtDisp").innerHTML = S.amount ? money(S.amount) : '$0 <small>← tap numbers</small>';
     $("#amtDisp").style.color = (S.amount > S.left) ? "var(--bad)" : "var(--navy)";
-    $("#amtNext").disabled = !(S.amount >= 10 && S.amount <= S.left);
+    var min = (S.mode === "wire") ? WIRE_FEE + 10 : 10;
+    $("#amtNext").disabled = !(S.amount >= min && S.amount <= S.left);
   }
   makeKeypad($("#padA"), function(n){
     if(n === "del"){ S.amount = Math.floor(S.amount / 10); }
@@ -486,7 +570,26 @@
       S.amount = parseInt(c.dataset.amt, 10); ok(); buzz(8); drawAmt();
     });
   });
-  $("#amtNext").addEventListener("click", function(){ ok(); go("id"); });
+  $("#amtNext").addEventListener("click", function(){
+    ok();
+    if(S.mode === "wire"){ buildQuote(); go("quote"); } else { go("id"); }
+  });
+
+  /* ---- 3b. the quotation ---- */
+  function arrives(){ return (S.amount - WIRE_FEE) * RATE; }
+  function buildQuote(){
+    var rows = [
+      ["You send", money(S.amount), ""],
+      ["Wire fee", "\u2212" + money(WIRE_FEE), ""],
+      ["We convert", money(S.amount - WIRE_FEE), ""],
+      ["Exchange rate", "$1 = " + peso(RATE), ""],
+      ["Maria receives", peso(arrives()), "free"],
+      ["Arrives", "In 1\u20132 days", ""]
+    ];
+    $("#quoteRows").innerHTML = rows.map(function(r){
+      return '<div><dt>' + r[0] + '</dt><dd class="' + r[2] + '">' + r[1] + '</dd></div>';
+    }).join("");
+  }
 
   /* ---- 2. customer ID ---- */
   $("#targetId").textContent = TARGET;
@@ -528,9 +631,13 @@
   });
 
   /* ---- 3/4. send ---- */
-  $("#sendBtn").addEventListener("click", function(){
+  function send(){
     ok();
+    var wire = (S.mode === "wire");
     $("#sendAmt").textContent = money(S.amount);
+    $("#miniTo").className = "mini " + (wire ? "bank" : "fam");
+    $("#miniTo").innerHTML = wire ? "\uD83C\uDFE6" : '<span class="minilogo cardlogo" aria-hidden="true"></span>';
+    $("#capTo").innerHTML = wire ? (BANK + "<br>at home \uD83C\uDFE6") : "Family card<br>at home \uD83C\uDFE0";
     go("sending");
     var bar = document.querySelector(".progress i");   // restart the fill on replays
     bar.style.animation = "none"; void bar.offsetWidth; bar.style.animation = "";
@@ -543,7 +650,9 @@
       setBal();
       finish();
     }, 1900);
-  });
+  }
+  $("#sendBtn").addEventListener("click", send);
+  $("#wireSend").addEventListener("click", send);
 
   function two(n){ return (n < 10 ? "0" : "") + n; }
   function stampNow(){
@@ -552,9 +661,29 @@
       two(t.getHours()) + ":" + two(t.getMinutes()) + ":" + two(t.getSeconds());
   }
   function finish(){
-    $("#rcAmt").textContent  = money(S.amount);
-    $("#rcId").textContent   = TARGET;
-    $("#rcLeft").textContent = money(S.left);
+    var wire = (S.mode === "wire");
+    var rows = wire
+      ? [["Sent", money(S.amount), ""],
+         ["To", "Maria Reyes \u00B7 " + BANK, ""],
+         ["SWIFT / BIC", SWIFT, ""],
+         ["Wire fee", money(WIRE_FEE), ""],
+         ["Maria receives", peso(arrives()), "free"],
+         ["Left on Ana's card", money(S.left), ""]]
+      : [["Sent", money(S.amount), ""],
+         ["To Customer ID", TARGET, ""],
+         ["Fee", money(0), "free"],
+         ["Left on Ana's card", money(S.left), ""]];
+    $("#rcRows").innerHTML = rows.map(function(r){
+      return '<div><dt>' + r[0] + '</dt><dd class="' + r[2] + '">' + r[1] + '</dd></div>';
+    }).join("");
+    $("#doneTitle").textContent = wire ? "On its way!" : "It arrived!";
+    $("#doneSub").textContent   = wire
+      ? "It lands in Maria's bank account in a day or two."
+      : "Maria got the money right away.";
+    $("#doneTip").innerHTML = wire
+      ? "Her employer put the wages on her card. She wired some to her family's bank — a small fee, " +
+        "and a day or two to arrive."
+      : "Her employer put the wages on her card. She sent some home, card to card — instant, and free.";
     $("#code").textContent   = "SM-" + Math.random().toString(36).slice(2, 6).toUpperCase();
     if(DAYWORD){ $("#word").textContent = DAYWORD; $("#wordWrap").hidden = false; }
     stampNow();
@@ -567,7 +696,7 @@
   /* ---- play again ---- */
   $("#againBtn").addEventListener("click", function(){
     clearInterval(S.clock);
-    S.amount = 0; S.buf = ""; S.left = WAGE; S.wrong = 0;
+    S.mode = "card"; S.amount = 0; S.buf = ""; S.left = WAGE; S.wrong = 0;
     drawAmt(); drawBoxes(); setBal();
     go("welcome");
   });
