@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Money Voyage — a ShipMoney learning game</title>
+<meta name="description" content="A ShipMoney-inspired game for kids about how seafarers are paid at sea and send their earnings home to their families.">
+<style>
+  /* ============================================================
+     BRAND TOKENS — placeholder values, not official brand assets.
+     Swap these five hex codes for the official ShipMoney palette
+     and the whole game re-skins. Nothing else needs editing.
+     ============================================================ */
+  :root{
+    --brand-navy:#062b4e;   /* deep hull navy — headings, borders   */
+    --brand-blue:#0072ce;   /* primary blue — buttons, card face    */
+    --brand-aqua:#00b7c3;   /* aqua accent — progress, highlights   */
+    --brand-gold:#ffb81c;   /* warm accent — stars, rewards         */
+    --brand-sand:#f4f7fa;   /* light ground — panels                */
+
+    --ink:#0d2438; --muted:#516d84; --card:#fff; --line:#d8e5ee;
+    --good:#12855a; --bad:#c8384c;
+    --gold-dark:#c98c0b; --blue-dark:#00539a;
+    --shadow:0 6px 0 rgba(6,43,78,.16), 0 14px 28px rgba(6,43,78,.14);
+    color-scheme: light;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--ink);
+    font-family:"Trebuchet MS", "Segoe UI", system-ui, -apple-system, sans-serif;
+    font-size:17px; line-height:1.5;
+    background:linear-gradient(180deg,#d8ecf8 0%, #86c4e6 42%, var(--brand-blue) 100%) fixed;
+  }
+  .wrap{max-width:960px; margin:0 auto; padding:14px 16px 44px}
+
+  /* ---------- header / brand lockup ---------- */
+  header.top{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+    background:var(--card); border:3px solid var(--brand-navy); border-radius:18px;
+    padding:10px 14px; box-shadow:var(--shadow); z-index:20;
+  }
+  @media (min-width:700px){ header.top{position:sticky; top:8px} }
+  .lockup{display:flex; align-items:center; gap:10px; flex:1 1 auto; min-width:180px}
+  .mark{
+    width:38px; height:38px; flex:none; border-radius:11px; display:grid; place-items:center;
+    background:linear-gradient(140deg,var(--brand-blue),var(--brand-navy)); color:#fff; font-size:1.25rem;
+  }
+  .lockup h1{font-size:1.05rem; margin:0; line-height:1.2}
+  .lockup h1 b{color:var(--brand-blue)}
+  .lockup h1 span{display:block; font-size:.72rem; font-weight:400; color:var(--muted)}
+  .score{font-weight:bold; background:#fff6e2; border:2px solid var(--brand-gold); border-radius:999px; padding:4px 12px; white-space:nowrap}
+  .iconbtn{font-size:1.05rem; background:var(--brand-sand); border:2px solid var(--line); border-radius:12px; padding:5px 10px; cursor:pointer}
+  .iconbtn:hover{background:#e3eefa}
+
+  .track{display:flex; gap:6px; margin:14px 0 10px}
+  .track .leg{flex:1; height:14px; border-radius:999px; background:#ffffff66; border:2px solid #ffffff99; position:relative}
+  .track .leg.done{background:var(--brand-aqua); border-color:#00949e}
+  .track .leg.now::after{content:"⛴️"; position:absolute; right:-6px; top:-18px; font-size:1.3rem}
+
+  .screen{
+    background:var(--card); border:3px solid var(--brand-navy); border-radius:22px;
+    padding:20px; box-shadow:var(--shadow); animation:pop .25s ease-out;
+  }
+  @keyframes pop{from{transform:scale(.985); opacity:0} to{transform:scale(1); opacity:1}}
+  @media (prefers-reduced-motion: reduce){ *{animation:none !important; transition:none !important} }
+
+  h2{margin:0 0 4px; font-size:1.5rem}
+  h2 .step{color:var(--brand-blue); font-size:.8rem; display:block; font-weight:bold; letter-spacing:.1em; text-transform:uppercase}
+  p.lead{margin:.2rem 0 1rem; color:var(--muted)}
+  .term{color:var(--brand-navy); font-weight:bold; border-bottom:2px dotted var(--brand-aqua)}
+
+  .btn{
+    font:inherit; font-weight:bold; cursor:pointer; border-radius:14px;
+    padding:12px 22px; border:3px solid var(--brand-navy); background:var(--brand-gold);
+    color:var(--ink); box-shadow:0 4px 0 var(--gold-dark);
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn:active{transform:translateY(3px); box-shadow:0 1px 0 var(--gold-dark)}
+  .btn[disabled]{opacity:.45; cursor:not-allowed; transform:none; box-shadow:0 4px 0 #b9c6cf; background:#e5eef3}
+  .btn.ghost{background:var(--brand-sand); box-shadow:0 4px 0 #b9c6cf}
+
+  .choices{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+  .choice{
+    text-align:left; font:inherit; cursor:pointer; background:var(--brand-sand);
+    border:3px solid var(--line); border-radius:18px; padding:14px;
+  }
+  .choice:hover{border-color:var(--brand-aqua); background:#f0fbfc}
+  .choice .emoji{font-size:2.1rem; display:block}
+  .choice b{display:block; font-size:1.05rem; margin:4px 0}
+  .choice small{color:var(--muted)}
+  .choice.picked{border-color:var(--good); background:#eefbf4}
+  .choice.wrong{border-color:var(--bad); background:#fdeef0}
+  .choice dl{margin:10px 0 0; font-size:.9rem; border-top:2px dotted var(--line); padding-top:8px}
+  .choice dl div{display:flex; justify-content:space-between; gap:8px; padding:2px 0}
+  .choice dl dt{color:var(--muted); margin:0}
+  .choice dl dd{margin:0; font-weight:bold}
+  .choice .best{color:var(--good)}
+
+  /* ---------- the card ---------- */
+  .cardface{
+    width:260px; max-width:100%; aspect-ratio:1.6/1; border-radius:16px; color:#fff; padding:14px;
+    background:linear-gradient(135deg,var(--brand-blue) 0%, var(--brand-navy) 78%);
+    box-shadow:var(--shadow); display:flex; flex-direction:column; justify-content:space-between;
+  }
+  .cardface.companion{background:linear-gradient(135deg,var(--brand-aqua) 0%, #046b78 80%)}
+  .cardface .row1{display:flex; align-items:center; justify-content:space-between}
+  .cardface .wordmark{font-weight:bold; letter-spacing:.01em}
+  .cardface .kind{font-size:.62rem; text-transform:uppercase; letter-spacing:.14em; opacity:.85}
+  .cardface .chip{width:34px; height:26px; border-radius:6px; background:linear-gradient(160deg,#f6d98a,#c9a13c); border:1px solid #b78f2e}
+  .cardface .num{font-family:ui-monospace,Menlo,Consolas,monospace; letter-spacing:.1em; font-size:.95rem}
+  .cardface .who{font-size:.72rem; text-transform:uppercase; letter-spacing:.09em}
+  .cardrow{display:flex; gap:16px; flex-wrap:wrap; align-items:center; margin:12px 0}
+  .cardrow .note{flex:1 1 220px; color:var(--muted); font-size:.94rem}
+
+  /* ---------- app notification ---------- */
+  .appnote{
+    display:flex; gap:10px; align-items:flex-start; background:var(--brand-navy); color:#fff;
+    border-radius:14px; padding:10px 14px; margin:10px 0; font-size:.92rem;
+  }
+  .appnote b{display:block}
+  .appnote .when{opacity:.65; font-size:.78rem}
+
+  /* ---------- payday deck ---------- */
+  #deck{
+    position:relative; height:330px; border-radius:18px; overflow:hidden;
+    background:linear-gradient(180deg,#a9dcf3 0%, #5eb3de 55%, #1f7fb4 100%);
+    border:3px solid var(--brand-navy);
+  }
+  #deck .hull{position:absolute; left:0; right:0; bottom:0; height:70px; background:#f0e6d2; border-top:5px solid #b99b63}
+  .drop{
+    position:absolute; font-size:2rem; background:none; border:none; cursor:pointer;
+    padding:2px; line-height:1; filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));
+  }
+  .drop:hover{transform:scale(1.15)}
+  .hud{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin:10px 0}
+  .hud .pill{background:var(--brand-sand); border:2px solid var(--line); border-radius:999px; padding:5px 14px; font-weight:bold}
+  .bar{height:20px; background:#e7f1f7; border:2px solid var(--line); border-radius:999px; overflow:hidden; flex:1 1 180px; min-width:160px}
+  .bar i{display:block; height:100%; background:var(--brand-aqua); width:0%}
+
+  /* ---------- jars ---------- */
+  .jars{display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+  .jar{background:var(--brand-sand); border:3px solid var(--line); border-radius:18px; padding:12px; text-align:center}
+  .jar .emoji{font-size:2.1rem}
+  .jar b{display:block}
+  .jar .amount{font-size:1.5rem; font-weight:bold; margin:6px 0; color:var(--brand-navy)}
+  .jar .row{display:flex; gap:8px; justify-content:center}
+  .jar button{font:inherit; font-weight:bold; font-size:1.2rem; width:46px; height:42px; border-radius:12px; border:3px solid var(--brand-navy); background:#fff; cursor:pointer}
+  .jar button:hover{background:#e9f6fd}
+  .jar small{color:var(--muted); display:block; margin-top:6px}
+  .bills{margin:10px 0; padding:12px; background:var(--brand-sand); border:2px dashed var(--line); border-radius:14px}
+  .bills ul{margin:6px 0 0; padding-left:20px}
+
+  /* ---------- shop ---------- */
+  .shop{display:grid; gap:10px; grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+  .item{display:flex; gap:10px; align-items:center; text-align:left; font:inherit; cursor:pointer;
+        background:#fff; border:3px solid var(--line); border-radius:16px; padding:10px}
+  .item .emoji{font-size:1.8rem}
+  .item.on{border-color:var(--good); background:#eefbf4}
+  .item .tag{font-size:.7rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+  .item .price{margin-left:auto; font-weight:bold}
+  .shake{animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+  .msg{margin-top:12px; padding:12px 14px; border-radius:14px; border:2px solid var(--line); background:var(--brand-sand)}
+  .msg.good{border-color:var(--good); background:#eefbf4}
+  .msg.bad{border-color:var(--bad); background:#fdeef0}
+  .actions{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; align-items:center}
+
+  /* ---------- fact overlay ---------- */
+  #overlay{position:fixed; inset:0; background:rgba(6,43,78,.6); display:none; align-items:center; justify-content:center; padding:16px; z-index:50}
+  #overlay.on{display:flex}
+  #overlay .box{background:#fff; border:4px solid var(--brand-navy); border-radius:22px; padding:22px; max-width:540px; box-shadow:var(--shadow); text-align:center}
+  #overlay .stars{font-size:2rem; letter-spacing:4px}
+  #overlay h3{margin:.2rem 0 .4rem}
+
+  /* ---------- certificate ---------- */
+  #cert{background:#fffdf7; border:6px double var(--brand-navy); border-radius:16px; padding:22px; text-align:center; margin-top:12px}
+  #cert .name{font-size:1.8rem; font-weight:bold; border-bottom:3px dotted var(--brand-aqua); display:inline-block; padding:0 18px 4px; margin:6px 0}
+  #cert table{margin:14px auto 0; border-collapse:collapse}
+  #cert td{padding:5px 12px; border-bottom:1px solid var(--line); text-align:left}
+  #cert td:last-child{text-align:right; font-weight:bold}
+
+  input[type=text]{font:inherit; padding:10px 12px; border-radius:12px; border:3px solid var(--line); max-width:260px}
+  .grown{margin-top:20px; color:#eaf6ff; font-size:.84rem; text-align:center}
+  @media print{
+    body{background:#fff}
+    header.top,.track,.actions,.grown,#overlay{display:none !important}
+    .screen{border:none; box-shadow:none; padding:0}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="lockup">
+      <div class="mark" aria-hidden="true">⚓</div>
+      <h1>Money Voyage
+        <span>A <b>ShipMoney</b> learning game — how sailors get paid at sea</span></h1>
+    </div>
+    <div class="score" id="score">⭐ 0 / 15</div>
+    <button class="iconbtn" id="sound" aria-pressed="true" title="Turn sound on or off">🔊</button>
+    <button class="iconbtn" id="restart" title="Start again">↻</button>
+  </header>
+
+  <div class="track" id="track" aria-hidden="true">
+    <div class="leg"></div><div class="leg"></div><div class="leg"></div><div class="leg"></div><div class="leg"></div>
+  </div>
+
+  <main id="stage" aria-live="polite">
+
+    <!-- INTRO -->
+    <section class="screen" id="screen-intro">
+      <h2>Welcome aboard! <span class="step">Start here</span></h2>
+      <p class="lead">
+        A <span class="term">seafarer</span> is someone who works on a ship. They live at sea for
+        many months, far from home — and the ships they crew carry almost everything you own.
+        So how does their pay reach their family?
+      </p>
+      <div class="cardrow">
+        <div class="cardface" id="introCard">
+          <div class="row1"><span class="wordmark">ShipMoney</span><span class="kind">Crew Card</span></div>
+          <div class="chip"></div>
+          <div>
+            <div class="num">•••• •••• •••• 4021</div>
+            <div class="who" id="introCardName">YOUR NAME HERE</div>
+          </div>
+        </div>
+        <p class="note">
+          This is your crew card. Your wages land on it wherever the ship is,
+          and the app in your pocket sends money home to your family.
+          Sail five stops with us to find out how it works.
+        </p>
+      </div>
+      <p><label for="nameInput"><b>What is your sailor name?</b></label><br>
+        <input type="text" id="nameInput" maxlength="18" placeholder="Captain Sam" autocomplete="off"></p>
+      <div class="actions">
+        <button class="btn" id="startBtn">Set sail ⛴️</button>
+      </div>
+    </section>
+
+    <!-- LEVEL 1 -->
+    <section class="screen" id="screen-l1" hidden>
+      <h2>Sign on <span class="step">Stop 1 of 5</span></h2>
+      <p class="lead">
+        Before a seafarer joins a ship they sign a <span class="term">contract</span>. It says what
+        job they will do, how many months they will sail, and how much they earn each month.
+        Pick your job aboard the <b>MV Sea Star</b> — a 9 month voyage.
+      </p>
+      <div class="choices" id="jobs"></div>
+      <div class="msg" id="l1msg" hidden></div>
+    </section>
+
+    <!-- LEVEL 2 -->
+    <section class="screen" id="screen-l2" hidden>
+      <h2>Payday at sea <span class="step">Stop 2 of 5</span></h2>
+      <p class="lead">
+        There is no cash machine in the middle of the ocean! On payday the shipping company loads
+        your wage straight onto your crew card, and your app buzzes to tell you.
+        Tap the coins to load your card — but do <b>not</b> tap the fake messages 📩 that try to
+        trick you into giving your money away.
+      </p>
+      <div class="hud">
+        <span class="pill" id="l2time">⏱️ 20s</span>
+        <span class="pill" id="l2money">💳 $0</span>
+        <div class="bar"><i id="l2bar"></i></div>
+      </div>
+      <div id="deck"><div class="hull"></div></div>
+      <div class="msg" id="l2msg" hidden></div>
+      <div class="actions"><button class="btn" id="l2start">Start payday!</button></div>
+    </section>
+
+    <!-- LEVEL 3 -->
+    <section class="screen" id="screen-l3" hidden>
+      <h2>Share out your pay <span class="step">Stop 3 of 5</span></h2>
+      <p class="lead">
+        Now the big choice. Every month a seafarer decides how much of the wage goes home to the
+        family. That share is called an <span class="term">allotment</span>, and it goes home every
+        single month without anyone having to ask. Fill all three jars — every dollar must go somewhere.
+      </p>
+      <div class="bills">
+        <b>🏠 Your family's monthly bills:</b>
+        <ul>
+          <li>Rent for the house — $200</li>
+          <li>Food for the family — $250</li>
+          <li>School for your little sister — $150</li>
+        </ul>
+        <b>So the Family jar needs at least $600.</b>
+        Savings needs at least a tenth of your wage, and you need at least $50 in your pocket
+        for soap, snacks and phone data at sea.
+      </div>
+      <div class="hud">
+        <span class="pill" id="l3wage">Wage: $0</span>
+        <span class="pill" id="l3left">Left to share: $0</span>
+      </div>
+      <div class="jars" id="jars"></div>
+      <div class="msg" id="l3msg" hidden></div>
+      <div class="actions"><button class="btn" id="l3check" disabled>Check my plan</button></div>
+    </section>
+
+    <!-- LEVEL 4 -->
+    <section class="screen" id="screen-l4" hidden>
+      <h2>The Transfer Marketplace <span class="step">Stop 4 of 5</span></h2>
+      <p class="lead">
+        Your family lives thousands of miles away. Money sent home like this is called a
+        <span class="term">remittance</span>. Your app shows you several ways to send your
+        <b id="l4amount">$0</b> side by side, so you can compare the <b>fee</b> and how long each
+        one takes. Which one leaves the most money for your family?
+      </p>
+      <div class="choices" id="ways"></div>
+      <div class="msg" id="l4msg" hidden></div>
+    </section>
+
+    <!-- LEVEL 5 -->
+    <section class="screen" id="screen-l5" hidden>
+      <h2>Family day <span class="step">Stop 5 of 5</span></h2>
+      <p class="lead">
+        The money has arrived on your family's <span class="term">companion card</span> — a second
+        card, linked to yours, that they keep at home. Help them shop:
+        <b>buy every need first</b>, then decide about the fun things.
+        Whatever is left stays on the card as savings.
+      </p>
+      <div class="cardrow">
+        <div class="cardface companion">
+          <div class="row1"><span class="wordmark">ShipMoney</span><span class="kind">Companion Card</span></div>
+          <div class="chip"></div>
+          <div>
+            <div class="num">•••• •••• •••• 7758</div>
+            <div class="who" id="famCardName">YOUR FAMILY</div>
+          </div>
+        </div>
+        <p class="note" id="famNote">Your family can tap this card in shops, or take cash out at a machine in town.</p>
+      </div>
+      <div class="hud">
+        <span class="pill" id="l5left">💰 $0 left</span>
+        <span class="pill" id="l5needs">Needs bought: 0 / 4</span>
+      </div>
+      <div class="shop" id="shop"></div>
+      <div class="msg" id="l5msg" hidden></div>
+      <div class="actions"><button class="btn" id="l5done" disabled>Keep the rest as savings</button></div>
+    </section>
+
+    <!-- END -->
+    <section class="screen" id="screen-end" hidden>
+      <h2>Voyage complete! <span class="step">Well done</span></h2>
+      <div id="cert"></div>
+      <div class="actions">
+        <button class="btn" id="printBtn">🖨️ Print my certificate</button>
+        <button class="btn ghost" id="againBtn">Sail again ↻</button>
+      </div>
+    </section>
+
+  </main>
+
+  <p class="grown">For grown-ups: five short stops follow a seafarer's pay cycle — signing on, wages loaded
+  onto a crew card at sea, the monthly allotment home, comparing transfer options, and needs-before-wants
+  budgeting on a companion card. An educational game: all wages, fees and partner names are made-up examples.</p>
+</div>
+
+<div id="overlay" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+  <div class="box">
+    <div class="stars" id="ovStars"></div>
+    <h3 id="ovTitle"></h3>
+    <p id="ovText"></p>
+    <button class="btn" id="ovBtn">Next stop ⛴️</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(s){ return document.querySelector(s); };
+  var money = function(n){ return "$" + Math.round(n).toLocaleString("en-US"); };
+
+  var TOTAL_STARS = 15, MONTHS = 9;
+
+  var state = {};
+  function reset(){
+    state = {
+      name:"Captain", job:null, wage:0,
+      collected:0, stars:0,
+      alloc:{home:0, save:0, pocket:0}, tries:0,
+      sent:0, fee:0, received:0, way:null, wayTries:0,
+      bought:[], saved:0
+    };
+  }
+  reset();
+
+  /* ---------- sound ---------- */
+  var soundOn = true, actx = null;
+  try { soundOn = localStorage.getItem("svs-sound") !== "off"; } catch(e){}
+  function beep(freq, dur, type){
+    if(!soundOn) return;
+    try{
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      var o = actx.createOscillator(), g = actx.createGain();
+      o.type = type || "triangle"; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.09, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + (dur||0.15));
+      o.connect(g); g.connect(actx.destination); o.start(); o.stop(actx.currentTime + (dur||0.15));
+    }catch(e){}
+  }
+  var sfx = {
+    coin:function(){ beep(880,.12); },
+    oops:function(){ beep(160,.25,"sawtooth"); },
+    win: function(){ beep(660,.12); setTimeout(function(){beep(880,.18);},110); }
+  };
+  $("#sound").addEventListener("click", function(){
+    soundOn = !soundOn;
+    this.textContent = soundOn ? "🔊" : "🔇";
+    this.setAttribute("aria-pressed", String(soundOn));
+    try { localStorage.setItem("svs-sound", soundOn ? "on" : "off"); } catch(e){}
+  });
+  $("#sound").textContent = soundOn ? "🔊" : "🔇";
+
+  /* ---------- screens ---------- */
+  var SCREENS = ["intro","l1","l2","l3","l4","l5","end"];
+  function show(id){
+    SCREENS.forEach(function(s){ $("#screen-" + s).hidden = (s !== id); });
+    window.scrollTo({ top:0, behavior:"smooth" });
+  }
+  function setScore(){ $("#score").textContent = "⭐ " + state.stars + " / " + TOTAL_STARS; }
+  function setTrack(n){
+    var legs = document.querySelectorAll("#track .leg");
+    for(var i=0;i<legs.length;i++){
+      legs[i].className = "leg" + (i < n ? " done" : "") + (i === n ? " now" : "");
+    }
+  }
+  function say(el, text, kind){
+    var m = $(el); m.hidden = false; m.className = "msg" + (kind ? " " + kind : ""); m.innerHTML = text;
+  }
+  function appNote(text, when){
+    return '<div class="appnote"><span aria-hidden="true">🔔</span><span><b>ShipMoney App</b>' +
+           text + '<span class="when">' + when + '</span></span></div>';
+  }
+
+  /* ---------- fact card between levels ---------- */
+  function finishLevel(stars, title, text, next){
+    state.stars += stars;
+    setScore(); sfx.win();
+    $("#ovStars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+    $("#ovTitle").textContent = title;
+    $("#ovText").innerHTML = text;
+    $("#ovBtn").textContent = next === "end" ? "See my certificate 🏅" : "Next stop ⛴️";
+    $("#overlay").classList.add("on");
+    $("#ovBtn").focus();
+    $("#ovBtn").onclick = function(){
+      $("#overlay").classList.remove("on");
+      go(next);
+    };
+  }
+
+  function go(id){
+    var idx = SCREENS.indexOf(id);
+    setTrack(Math.max(0, idx - 1));
+    show(id);
+    if(id === "l1") buildJobs();
+    if(id === "l2") setupPayday();
+    if(id === "l3") buildJars();
+    if(id === "l4") buildWays();
+    if(id === "l5") buildShop();
+    if(id === "end") buildCert();
+  }
+
+  /* ---------- intro ---------- */
+  $("#nameInput").addEventListener("input", function(){
+    $("#introCardName").textContent = (this.value.trim() || "YOUR NAME HERE").toUpperCase();
+  });
+  $("#startBtn").addEventListener("click", function(){
+    var n = $("#nameInput").value.trim();
+    state.name = n ? n : "Captain";
+    go("l1");
+  });
+  $("#nameInput").addEventListener("keydown", function(e){ if(e.key === "Enter") $("#startBtn").click(); });
+
+  /* ---------- level 1: signing on ---------- */
+  var JOBS = [
+    { id:"cadet",    emoji:"🧭", name:"Deck Cadet",   wage:900,  note:"Learning to steer the ship" },
+    { id:"cook",     emoji:"🍳", name:"Ship's Cook",  wage:1100, note:"Feeds all 22 crew, every day" },
+    { id:"engineer", emoji:"🔧", name:"Engineer",     wage:1500, note:"Keeps the huge engines running" }
+  ];
+  function buildJobs(){
+    var box = $("#jobs"); box.innerHTML = "";
+    JOBS.forEach(function(j){
+      var b = document.createElement("button");
+      b.className = "choice"; b.type = "button"; b.dataset.id = j.id;
+      b.innerHTML = '<span class="emoji">' + j.emoji + '</span><b>' + j.name + '</b>' +
+                    '<small>' + j.note + '</small><br><b>' + money(j.wage) + ' each month</b>';
+      b.addEventListener("click", function(){
+        state.job = j; state.wage = j.wage;
+        beep(700,.12);
+        finishLevel(3, "Signed on!",
+          "You are the <b>" + j.name + "</b> of the MV Sea Star, earning <b>" + money(j.wage) +
+          "</b> a month for 9 months." +
+          appNote("<br>Welcome aboard, " + esc(state.name) + "! Your crew card is ready, and a card for " +
+                  "your family is on its way to them.", "just now") +
+          "A contract is a promise in writing, so nobody can argue later about what was agreed. " +
+          "Many seafarers have no bank near their village — a card and an app work anywhere the ship goes.", "l2");
+      });
+      box.appendChild(b);
+    });
+  }
+  function esc(s){ var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+  /* ---------- level 2: payday coin catch ---------- */
+  var payTimer = null, spawnTimer = null;
+  function setupPayday(){
+    $("#l2msg").hidden = true;
+    $("#l2start").hidden = false;
+    $("#l2start").textContent = "Start payday!";
+    $("#l2money").textContent = "💳 $0";
+    $("#l2time").textContent = "⏱️ 20s";
+    $("#l2bar").style.width = "0%";
+    clearDeck();
+  }
+  function clearDeck(){
+    Array.prototype.slice.call($("#deck").querySelectorAll(".drop")).forEach(function(d){ d.remove(); });
+  }
+  function spawnDrop(){
+    var bad = Math.random() < 0.22;
+    var b = document.createElement("button");
+    b.type = "button"; b.className = "drop";
+    b.textContent = bad ? "📩" : "🪙";
+    b.setAttribute("aria-label", bad ? "Fake message, do not tap" : "Coin, tap to collect");
+    b.style.left = (6 + Math.random() * 82) + "%";
+    b.style.top  = (8 + Math.random() * 62) + "%";
+    b.addEventListener("click", function(){
+      if(bad){
+        state.collected = Math.max(0, state.collected - 25);
+        sfx.oops();
+        say("#l2msg", "😬 That was a <b>fake message</b> pretending to be your bank, asking for your card number. " +
+                      "Never tap those — your real wages simply arrive, and nobody honest asks for your PIN.", "bad");
+      } else {
+        state.collected += 50; sfx.coin();
+      }
+      b.remove();
+      updatePayHud();
+    });
+    $("#deck").appendChild(b);
+    setTimeout(function(){ if(b.parentNode) b.remove(); }, 1900);
+  }
+  function updatePayHud(){
+    $("#l2money").textContent = "💳 " + money(state.collected);
+    $("#l2bar").style.width = Math.min(100, (state.collected / state.wage) * 100) + "%";
+  }
+  $("#l2start").addEventListener("click", function(){
+    this.hidden = true;
+    $("#l2msg").hidden = true;
+    state.collected = 0; updatePayHud();
+    var left = 20;
+    $("#l2time").textContent = "⏱️ " + left + "s";
+    spawnTimer = setInterval(spawnDrop, 520);
+    payTimer = setInterval(function(){
+      left--;
+      $("#l2time").textContent = "⏱️ " + left + "s";
+      if(left <= 0){
+        clearInterval(payTimer); clearInterval(spawnTimer); clearDeck();
+        var pct = state.collected / state.wage;
+        var stars = pct >= 0.9 ? 3 : (pct >= 0.5 ? 2 : 1);
+        var caught = state.collected >= state.wage
+          ? "You caught the lot! Your full wage of <b>" + money(state.wage) + "</b> is on your card."
+          : "You caught " + money(state.collected) + " — and the company sends the rest, so your full wage of <b>" +
+            money(state.wage) + "</b> is now on your card.";
+        finishLevel(stars, "Wages received!",
+          caught +
+          appNote("<br>Wages loaded: <b>" + money(state.wage) + "</b>. Tap to see your balance.", "payday, 09:00") +
+          "Ships use satellite internet, so wages travel as data, not as sacks of cash. " +
+          "That also means nothing can be lost or stolen from a cabin — and the money is there the moment it is sent.", "l3");
+      }
+    }, 1000);
+  });
+
+  /* ---------- level 3: the allotment ---------- */
+  var JARS = [
+    { key:"home",   emoji:"🏠", name:"Family at home", note:"The allotment — sent home every month" },
+    { key:"save",   emoji:"🛟", name:"Savings",        note:"For emergencies and for months with no ship" },
+    { key:"pocket", emoji:"🎒", name:"My pocket",      note:"Soap, snacks and phone data on board" }
+  ];
+  function buildJars(){
+    state.alloc = { home:0, save:0, pocket:0 };
+    state.tries = 0;
+    $("#l3msg").hidden = true;
+    $("#l3wage").textContent = "Wage: " + money(state.wage);
+    var box = $("#jars"); box.innerHTML = "";
+    JARS.forEach(function(j){
+      var d = document.createElement("div");
+      d.className = "jar";
+      d.innerHTML = '<div class="emoji">' + j.emoji + '</div><b>' + j.name + '</b>' +
+        '<div class="amount" id="amt-' + j.key + '">$0</div>' +
+        '<div class="row"><button type="button" data-k="' + j.key + '" data-d="-50" aria-label="Take $50 out of ' + j.name + '">−</button>' +
+        '<button type="button" data-k="' + j.key + '" data-d="50" aria-label="Put $50 into ' + j.name + '">+</button></div>' +
+        '<small>' + j.note + '</small>';
+      box.appendChild(d);
+    });
+    if(!box.dataset.wired){ box.addEventListener("click", jarClick); box.dataset.wired = "1"; }
+    updateJars();
+  }
+  function jarClick(e){
+    var b = e.target.closest("button[data-k]");
+    if(!b) return;
+    var k = b.dataset.k, d = parseInt(b.dataset.d, 10);
+    var left = state.wage - (state.alloc.home + state.alloc.save + state.alloc.pocket);
+    if(d > 0) d = Math.min(d, left);
+    if(d < 0) d = -Math.min(50, state.alloc[k]);
+    if(d === 0){ sfx.oops(); return; }
+    state.alloc[k] += d;
+    beep(d > 0 ? 620 : 380, .08);
+    updateJars();
+  }
+  function updateJars(){
+    var a = state.alloc, left = state.wage - (a.home + a.save + a.pocket);
+    JARS.forEach(function(j){ $("#amt-" + j.key).textContent = money(a[j.key]); });
+    $("#l3left").textContent = "Left to share: " + money(left);
+    $("#l3check").disabled = left !== 0;
+  }
+  $("#l3check").addEventListener("click", function(){
+    var a = state.alloc, need = 600, minSave = Math.round(state.wage / 10);
+    var problems = [];
+    if(a.home < need) problems.push("The family jar has only " + money(a.home) + ". The bills at home come to <b>$600</b>, so somebody would go without.");
+    if(a.save < minSave) problems.push("Savings has only " + money(a.save) + ". Try at least <b>" + money(minSave) + "</b> — seafarers earn nothing between contracts.");
+    if(a.pocket < 50) problems.push("You kept " + money(a.pocket) + " for yourself. Keep at least <b>$50</b> for soap, snacks and phone data.");
+    if(problems.length){
+      state.tries++;
+      sfx.oops();
+      say("#l3msg", "<b>Almost!</b><ul><li>" + problems.join("</li><li>") + "</li></ul>Move some money and check again.", "bad");
+      return;
+    }
+    state.sent = a.home;
+    finishLevel(state.tries === 0 ? 3 : 2, "A good plan!",
+      "Every month <b>" + money(a.home) + "</b> goes home, <b>" + money(a.save) + "</b> goes into savings and " +
+      "<b>" + money(a.pocket) + "</b> stays in your pocket.<br><br>The share sent home automatically is called an " +
+      "<b>allotment</b>. Many seafarers send most of their wage this way, so their family never has to wait, " +
+      "worry, or ask.", "l4");
+  });
+
+  /* ---------- level 4: the transfer marketplace ---------- */
+  function buildWays(){
+    $("#l4msg").hidden = true;
+    $("#l4amount").textContent = money(state.sent);
+    state.wayTries = 0;
+    var WAYS = [
+      { id:"stranger", emoji:"🕵️", name:"A man at the dock", sub:"“Give me the cash, I'll take it to your family”",
+        unsafe:true,
+        why:"He has no office, no receipt and no name you can check. If the money vanishes, nobody can help you get it back." },
+      { id:"seasend", emoji:"🏦", name:"SeaSend Partner", sub:"A transfer company in the marketplace",
+        fee:9, days:"3 days" },
+      { id:"companion", emoji:"💳", name:"Straight to the companion card", sub:"Card to card, inside the app",
+        fee:2, days:"right away" },
+      { id:"harbour", emoji:"📮", name:"Harbour Express", sub:"Cash to collect at a shop in town",
+        fee:5, days:"tomorrow" }
+    ];
+    var cheapest = WAYS.filter(function(w){ return !w.unsafe; })
+                       .reduce(function(a,b){ return b.fee < a.fee ? b : a; });
+    var box = $("#ways"); box.innerHTML = "";
+    WAYS.forEach(function(w){
+      var b = document.createElement("button");
+      b.className = "choice"; b.type = "button"; b.dataset.id = w.id;
+      var rows = w.unsafe
+        ? '<div><dt>Fee</dt><dd>“nothing!”</dd></div>' +
+          '<div><dt>Arrives</dt><dd>who knows</dd></div>' +
+          '<div><dt>Receipt</dt><dd>none</dd></div>'
+        : '<div><dt>Fee</dt><dd>' + money(w.fee) + '</dd></div>' +
+          '<div><dt>Arrives</dt><dd>' + w.days + '</dd></div>' +
+          '<div><dt>Family gets</dt><dd>' + money(state.sent - w.fee) + '</dd></div>';
+      b.innerHTML = '<span class="emoji">' + w.emoji + '</span><b>' + w.name + '</b>' +
+                    '<small>' + w.sub + '</small><dl>' + rows + '</dl>';
+      b.addEventListener("click", function(){
+        if(w.unsafe){
+          b.classList.add("wrong"); sfx.oops(); state.wayTries++;
+          say("#l4msg", "🚫 <b>Never do this.</b> " + w.why +
+              " A real transfer always gives you a receipt you can track. Compare the other three instead.", "bad");
+          return;
+        }
+        if(w.id !== cheapest.id){
+          b.classList.add("wrong"); sfx.oops(); state.wayTries++;
+          say("#l4msg", "🤔 That one is safe, but look at the fees. " + w.name + " charges " + money(w.fee) +
+              " and takes " + w.days + ". One of the others leaves your family <b>" + money(w.fee - cheapest.fee) +
+              " more</b> — and gets there sooner. Try again!", "bad");
+          return;
+        }
+        b.classList.add("picked");
+        state.way = w; state.fee = w.fee; state.received = state.sent - w.fee;
+        finishLevel(state.wayTries === 0 ? 3 : 2, "Best deal found!",
+          "You sent " + money(state.sent) + ". The <b>fee</b> was " + money(w.fee) + ", so <b>" +
+          money(state.received) + "</b> lands on your family's card — " + w.days + "." +
+          appNote("<br>Sent to your family: <b>" + money(state.received) + "</b>. Receipt saved.", "just now") +
+          "Sending money home is called a <b>remittance</b>. Different companies charge different fees " +
+          "and take different amounts of time, so comparing them side by side — before you send — " +
+          "keeps more of the money where it belongs: with your family.", "l5");
+      });
+      box.appendChild(b);
+    });
+  }
+
+  /* ---------- level 5: family budget ---------- */
+  var ITEMS = [
+    { id:"food",   emoji:"🍚", name:"Rice, beans and vegetables", cost:120, need:true },
+    { id:"school", emoji:"📚", name:"School fees and books",      cost:150, need:true },
+    { id:"power",  emoji:"💡", name:"Electricity and water",      cost:80,  need:true },
+    { id:"med",    emoji:"💊", name:"Grandma's medicine",         cost:60,  need:true },
+    { id:"phone",  emoji:"📱", name:"A shiny new phone",          cost:200, need:false },
+    { id:"tv",     emoji:"📺", name:"An enormous television",     cost:300, need:false },
+    { id:"party",  emoji:"🎆", name:"Fireworks for the street",   cost:90,  need:false }
+  ];
+  function buildShop(){
+    state.bought = [];
+    $("#l5msg").hidden = true;
+    $("#famCardName").textContent = "THE " + esc(state.name.split(" ").pop().toUpperCase()) + " FAMILY";
+    $("#famNote").innerHTML = "Your family can tap this card in shops, or take cash out at a machine in town. " +
+      "You can both see every payment in the app — so you always know the money arrived.";
+    var box = $("#shop"); box.innerHTML = "";
+    ITEMS.forEach(function(it){
+      var b = document.createElement("button");
+      b.className = "item"; b.type = "button"; b.dataset.id = it.id;
+      b.innerHTML = '<span class="emoji">' + it.emoji + '</span><span><span class="tag">' +
+        (it.need ? "Need" : "Want") + '</span><br>' + it.name + '</span><span class="price">' + money(it.cost) + '</span>';
+      b.addEventListener("click", function(){ toggleItem(it, b); });
+      box.appendChild(b);
+    });
+    updateShop();
+  }
+  function costOf(id){ return ITEMS.filter(function(i){ return i.id === id; })[0].cost; }
+  function isNeed(id){ return ITEMS.filter(function(i){ return i.id === id; })[0].need; }
+  function spent(){ return state.bought.reduce(function(t, id){ return t + costOf(id); }, 0); }
+  function toggleItem(it, btn){
+    var i = state.bought.indexOf(it.id);
+    if(i > -1){
+      state.bought.splice(i, 1);
+      btn.classList.remove("on"); beep(380,.08);
+    } else {
+      if(spent() + it.cost > state.received){
+        btn.classList.add("shake"); sfx.oops();
+        setTimeout(function(){ btn.classList.remove("shake"); }, 320);
+        say("#l5msg", "💸 The card does not have enough for that. Tap something you already picked to put it back — " +
+                      "needs come first!", "bad");
+        return;
+      }
+      state.bought.push(it.id);
+      btn.classList.add("on"); beep(620,.08);
+    }
+    updateShop();
+  }
+  function updateShop(){
+    var left = state.received - spent();
+    var needs = state.bought.filter(isNeed).length;
+    $("#l5left").textContent = "💰 " + money(left) + " left";
+    $("#l5needs").textContent = "Needs bought: " + needs + " / 4";
+    $("#l5done").disabled = needs < 4;
+    $("#l5done").textContent = needs < 4 ? "Buy all 4 needs first" : "Keep the rest as savings (" + money(left) + ")";
+  }
+  $("#l5done").addEventListener("click", function(){
+    var left = state.received - spent(), wants = state.bought.length - 4;
+    state.saved = left;
+    var extra = left > 0
+      ? "You left <b>" + money(left) + "</b> on the card as savings. Brilliant — that is what a family uses when " +
+        "somebody is ill, or in the months between contracts when no wages come in."
+      : "Every need is paid for, but nothing is left over. Next month, try to keep a little back for savings.";
+    finishLevel(left > 0 ? 3 : 2, "Family day done!",
+      "The family paid for everything they need" +
+      (wants > 0 ? " and enjoyed " + wants + " treat" + (wants > 1 ? "s" : "") : "") + ".<br><br>" + extra, "end");
+  });
+
+  /* ---------- certificate ---------- */
+  function buildCert(){
+    setTrack(5);
+    var yearHome = state.sent * MONTHS, yearSave = state.alloc.save * MONTHS;
+    var badge = state.stars >= 14 ? "🏆 Master of Money" : state.stars >= 11 ? "🥇 Ship's Treasurer" : "🎖️ Trusty Shipmate";
+    var c = $("#cert");
+    c.innerHTML =
+      '<div style="font-size:2.2rem">⚓</div>' +
+      '<div style="letter-spacing:.12em; text-transform:uppercase; color:var(--brand-blue); font-size:.78rem; font-weight:bold">' +
+        'Money Voyage · Certificate of Seafaring Sense</div>' +
+      '<div class="name"></div>' +
+      '<div>sailed 9 months on the <b>MV Sea Star</b> as ' + esc(state.job.name) + ',<br>' +
+        'and kept a family safe, fed and at school.</div>' +
+      '<table><tbody>' +
+      '<tr><td>Wage each month</td><td>' + money(state.wage) + '</td></tr>' +
+      '<tr><td>Sent home each month (allotment)</td><td>' + money(state.sent) + '</td></tr>' +
+      '<tr><td>Transfer fee paid</td><td>' + money(state.fee) + '</td></tr>' +
+      '<tr><td>Sent home over 9 months</td><td>' + money(yearHome) + '</td></tr>' +
+      '<tr><td>Saved over 9 months</td><td>' + money(yearSave) + '</td></tr>' +
+      '<tr><td>Stars earned</td><td>' + state.stars + ' / ' + TOTAL_STARS + '</td></tr>' +
+      '</tbody></table>' +
+      '<p style="margin-top:14px; font-size:1.2rem"><b>' + badge + '</b></p>' +
+      '<p style="color:var(--muted)">Around the world, seafarers keep our food, clothes and toys moving — ' +
+      'and send most of their pay home to the people they love.</p>';
+    c.querySelector(".name").textContent = state.name;
+  }
+  $("#printBtn").addEventListener("click", function(){ window.print(); });
+  $("#againBtn").addEventListener("click", startOver);
+  $("#restart").addEventListener("click", startOver);
+
+  function startOver(){
+    clearInterval(payTimer); clearInterval(spawnTimer);
+    $("#overlay").classList.remove("on");
+    reset(); setScore(); setTrack(0);
+    $("#nameInput").value = "";
+    $("#introCardName").textContent = "YOUR NAME HERE";
+    show("intro");
+  }
+
+  setScore(); setTrack(0);
+})();
+</script>
+</body>
+</html>
